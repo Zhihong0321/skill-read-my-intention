@@ -1,120 +1,141 @@
-# 🧠 RMINGI — Read My Intention, Not Guess It
+# RMINGI - Read My Intention, Not Guess It
 
-[![Version](https://img.shields.io/badge/version-v0.2-blue.svg)]()
-[![Methodology](https://img.shields.io/badge/methodology-risk_reduction-orange.svg)]()
-[![Target](https://img.shields.io/badge/target-AI_First_Codebases-brightgreen.svg)]()
+**AI can write working code. RMINGI helps AI understand why the code exists.**
 
-> *"Blurry intention is like cancer in a codebase. It doesn't cause any visible trouble at first. But as AI models build on top of unstated assumptions, it silently metastasizes until it becomes the deadliest problem in your system."*
+AI coding is getting very good.
 
-**RMINGI** is an operational safety-net process for surfacing and syncing the **WHY** behind AI-built codebases. It is designed to find hidden assumptions that pose a massive risk to long-running, multi-model AI projects.
+It can build features.
+It can pass tests.
+It can ship code.
 
----
+But there is still one big gap between AI coders and experienced human coders:
 
-## 🚨 The Threat: Intention Drift
+**intention**
 
-When AI builds features from short instructions, it guesses the business intent. The code works. It ships. But the guess is recorded nowhere. 
+Good human coders do not start with code first.
+They try to make the intention clear first.
 
-Six months and thirty AI sessions later, a new AI agent reads that code and makes a *second* guess built on top of the first. Eventually, you have a codebase where every part works, but nobody can say with confidence why it was built the way it was. 
+They ask:
 
-**Intention drift is the most expensive silent failure in AI-driven development.** 
+- Why does this feature exist?
+- What business rule does it protect?
+- What must never change?
+- What looks simple, but is actually important?
 
----
+AI usually does not do this well.
 
-## ⚡ What's New in v0.2?
+AI looks for clear instructions, patterns, and structure.
+It can build code that works without fully understanding the real reason behind it.
 
-RMINGI v0.2 makes a massive shift in philosophy based on real-world friction: 
+That is where AI codebases start to drift.
 
-**"Don’t ask the AI to explain every feature. Ask it to identify where guessing the reason would be expensive."**
+## The Missing Piece
 
-1. **The Mine-Sweeper Shift:** We no longer document obvious things (e.g., "The email field accepts emails"). RMINGI explicitly hunts for inferred business rules, compliance triggers, background jobs, and auth middleware.
-2. **Air-Gapped Drafts:** Speculation no longer goes straight into the canonical file. Guesses are air-gapped into `.agents/sync-draft.md` so future AI agents are not poisoned by unverified assumptions.
-3. **Batched Realignment:** The AI groups risky guesses into "Review Packets" by flow (e.g., "The Payment Lifecycle") instead of asking you 50 questions one-by-one.
-4. **The Evidence Ladder:** The AI is strictly commanded to read Docs, Memory, and Comments *before* it tries to infer intent from raw code.
+The biggest missing piece in AI coding today is not syntax.
+It is not code generation.
+It is not testing.
 
----
+It is this:
 
-## 🔴 Real Examples of Intention Drift
+**AI still struggles to reliably recover and respect human intention.**
 
-Why do you need a mine-sweeper? Because code looks benign until it isn't.
+One AI guesses.
+The next AI builds on that guess.
+Then another AI cleans up, refactors, or optimizes based on the wrong reason.
 
-### Example 1: The Soft Delete That Destroyed an Audit Trail
-> **Instruction:** *"Don't permanently delete customer records."*
-> **AI Built:** A standard soft-delete pattern (`deleted_at` timestamp).
-> **AI Assumed:** Operational hygiene. A safety net for accidental clicks.
-> **The Fallout:** A "performance-optimizing AI" archived 80,000 "deleted" records to cold storage to speed up queries. A compliance audit later requested 3 years of user history. Huge legal exposure.
-> 
-> **How RMINGI catches it:** It flags `deleted_at` as a `WEAKLY INFERRED` intent with `HIGH` risk (Data/Compliance) and asks the human: *"Is this soft-delete for UI safety, or for legal retention?"*
+Nothing looks broken at first.
+But the system slowly becomes dangerous because the original intention was never made clear.
 
-### Example 2: The Status Field That Caused Double Charges
-> **Instruction:** *"Add a pending status to payments."*
-> **AI Built:** A `pending` state in the database.
-> **AI Assumed:** "Pending" means the gateway is slow. Safe to auto-retry.
-> **The Fallout:** Another AI added a cron job to retry timed-out pending payments. 72 hours later: duplicate charges, refund requests, support fires.
->
-> **How RMINGI catches it:** It detects the state machine and asks: *"Does `pending` resolve automatically via webhook, or does it wait for manual accounting approval? Can it be retried?"*
+## Why This Matters
 
----
+A field can look optional, but be critical.
 
-## 🔄 The 2-Phase Process
+A status can look technical, but mean manual approval.
 
-RMINGI is executed *after* a project has grown, or when handing off to a new model.
+A cleanup job can look harmless, but exist for legal compliance.
 
-### Phase 1: Discovery (The Mine-Sweeper)
-The AI scans the codebase using the **Evidence Ladder**. It maps out Core Business Flows—including UI, background jobs, auth middleware, and integrations. 
+The code works.
+The tests pass.
+The AI is still wrong.
 
-It hunts for structural decisions driven by inferred business rules. These guesses are **air-gapped** into a temporary file (`.agents/sync-draft.md`).
+## What RMINGI Does
 
-### Phase 2: Sync (Batched Realignment)
-The AI groups the risky guesses into **Review Packets** by business flow. It presents them to you in tight, easy-to-review batches.
+RMINGI is a workflow for AI-built codebases.
 
-Once you correct or confirm the intent, the AI moves the entry into the canonical `.agents/intentions.md`.
+It helps AI find places where guessing the reason would be expensive.
 
----
+RMINGI does not try to document everything.
 
-## 📊 Approach Comparison
+It focuses on risky intention gaps such as:
 
-| Approach | Primary Question it Answers | The Blind Spot |
-|----------|---------|--------|
-| **Spec-Driven** | Did the AI build what I described? | *WHY* it was described that way at the time. |
-| **Harness Engineering** | Did the AI build it consistently? | Whether it was the *right* thing to build. |
-| **RMINGI** | **Does the AI know WHY this exists?** | — |
+- payment states
+- auth and permission rules
+- optional fields with hidden meaning
+- cron jobs and background processing
+- soft deletes and retention rules
+- integrations and webhooks
+- compliance flows
+- hidden business constraints
 
-Specs and harnesses dictate the *WHAT* and constrain the *HOW*. RMINGI aligns the *WHY*. A builder with perfect blueprints and perfect guardrails will still build the wrong house if they fundamentally misunderstood what the family needs it for.
+RMINGI separates guesses from truth.
 
----
+- risky findings go into a draft
+- humans confirm or correct them
+- confirmed intention goes into a canonical map
 
-## ⏱️ When To Run RMINGI
+## RMINGI v0.3
 
-| Trigger | Action |
-|---------|--------|
-| Project is 6+ months old | Full initial sync — run on the whole codebase. |
-| Switching AI models | Run discovery to orient the new model, sync any new gaps. |
-| Planning a major refactor | Require the AI to read the affected `intentions.md` area first. |
-| The Map gets "Stale" | If a confirmed intention contradicts reality or is >1 year old, re-sync it. |
+RMINGI v0.3 is built around five rules:
 
----
+- Human-only confirmation
+- Evidence before inference
+- Draft guesses stay air-gapped
+- Open questions stay visible
+- Focus only on expensive guesses
 
-## 📁 Artifacts
+## The 3 States
 
-- `.agents/intentions.md` — The single canonical map organized by Business Flows. Any AI agent reads this before working on a feature, refactoring, or optimizing. 
-- `.agents/sync-draft.md` — The volatile, air-gapped scratchpad used only during the Sync phase.
+- `EVIDENCED` - strong evidence exists, but no human has confirmed it yet
+- `OPEN` - the intention is still unclear and needs human review
+- `CONFIRMED` - a human confirmed it, and future AI can rely on it
 
----
+Only humans can move an entry to `CONFIRMED`.
 
-## 🚀 Usage
+## The Workflow
 
-**As a standalone skill:**
-1. Put `SKILL.md` in your project where your AI can read it.
-2. Say: *"Run read-my-intention on this codebase"*
-3. The AI produces the air-gapped discovery draft and begins the Batched Sync dialogue with you.
+1. AI gathers evidence before making a guess.
+2. AI writes risky findings into `.agents/sync-draft.md`.
+3. AI groups them into small review packets by business flow.
+4. A human confirms, corrects, or leaves them open.
+5. Confirmed entries move into `.agents/intentions.md`.
+6. Open entries stay visible until resolved.
 
-**As part of the [AI First Maintenance Bundle](https://github.com/Zhihong0321/skill-ai-first):**
-- RMINGI is invoked by the Front Desk when intention drift is suspected.
-- The output feeds into `context-navigator` and acts as a strict structural constraint for architectural skills.
+## Evidence Ladder
 
----
+Before inferring intention from code, RMINGI looks here first:
 
-## 🏷️ The Core Belief
-**RMINGI** — *Read My Intention, Not Guess It*
+1. `README.md` and project docs
+2. `.agents/` memory files
+3. ADRs, notes, migrations, and ops docs
+4. PRs, issues, and commit history
+5. prompts and inline comments
+6. code
 
-Code changes. Specs age. Architecture evolves. Layer upon layer of AI assumption is added to the stack. But **why a feature exists** — the core business intention — is absolute. RMINGI exists to make sure the AI is reading that intention, not guessing it.
+## Artifacts
+
+- `.agents/sync-draft.md` - temporary review draft, not canonical
+- `.agents/intentions.md` - human-confirmed intention map, canonical
+
+## When To Use RMINGI
+
+Use it when:
+
+- a project has had many AI sessions
+- a new model is about to work on the repo
+- a refactor is coming
+- the code works, but nobody is fully sure why it works this way
+- a rule feels obvious in code, but may not actually be obvious
+
+## One-Line Summary
+
+**RMINGI helps AI read intention before it changes code.**

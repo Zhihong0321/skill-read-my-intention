@@ -1,48 +1,74 @@
 # RMINGI Sync Draft (Air-Gapped)
 
-> **WARNING TO AI AGENTS:** 
-> This is a temporary file containing `WEAKLY INFERRED` guesses and assumptions. DO NOT treat these statements as facts. DO NOT reference them during refactoring or building. 
-> 
-> This file exists solely to facilitate the batched human-sync process. Once sync is complete, this file should be deleted.
+- Repo: [repo name]
+- Draft opened: YYYY-MM-DD
+- RMINGI version: v0.3
+
+> WARNING TO AI AGENTS:
+> This file is not canonical truth.
+> It contains `EVIDENCED` and `OPEN` entries that still need human review.
+> Do not use this file as authority during refactors, cleanup, or implementation.
 
 ---
 
-## Review Packet 1: The Payment Lifecycle
+## Review Packet 1: Payment Lifecycle
 
-**Risk Level:** HIGH (Financial Impact)
+- Risk level: `HIGH`
+- Why this packet matters: money movement can break even when tests still pass
 
-### 1. The "Pending" Status 
+### [Entry: Pending Payment Status]
+
+- State: `OPEN`
+- Likely intention: pending means the payment is waiting for an external confirmation step
+- Risk if misunderstood: duplicate charges, wrong retry logic, or blocked accounting flow
+
 **What the code is doing:**
-The database state machine defines a transition from `draft` → `pending` → `paid`. There is no timer or automated retry logic attached to `pending`.
+The payment state machine moves from `draft` to `pending` to `paid`. No clear auto-retry or manual approval rule is visible in code.
 
-**Assumed Intention:**
-Waiting for the payment gateway webhook to fire asynchronously.
+**Evidence found:**
+- the state exists in the payment flow
+- no linked retry job was found
+- no clear manual approval note was found
 
-**Why it's a guess (The Evidence Gap):**
-No webhook listeners are explicitly linked to this state in the router. It could be an asynchronous gateway wait, or it could require manual administrative approval. 
+**Why this is still open:**
+The state could mean gateway wait, webhook delay, or manual accounting approval. The code does not prove which one is correct.
 
-**Needs Confirmation:**
-- Does the system transition this automatically via webhook, or does a human accountant click "Approve" to move out of `pending`?
-- If a webhook fails, should this be auto-retried?
+**Needs human review:**
+- what exactly does `pending` mean in this system?
+- can it ever be retried automatically?
+- who is allowed to move it out of `pending`?
 
 ---
 
 ## Review Packet 2: Customer Data Lifecycle
 
-**Risk Level:** HIGH (Compliance/Audit)
+- Risk level: `HIGH`
+- Why this packet matters: deletion and retention rules often hide legal intent
 
-### 1. Soft Deletion of Accounts
+### [Entry: Soft Deletion of Accounts]
+
+- State: `EVIDENCED`
+- Likely intention: account data stays in place because retention matters more than immediate hard deletion
+- Risk if misunderstood: legal exposure, audit failure, or destructive cleanup
+
 **What the code is doing:**
-A `deleted_at` column is populated when a user clicks "Delete My Account." The user can no longer log in.
+A `deleted_at` field is populated and deleted users lose normal access, but the records remain in the database.
 
-**Assumed Intention:**
-A safety measure allowing customer service to restore accounts if the user changes their mind within a grace period. 
+**Evidence found:**
+- soft-delete behavior is implemented
+- deleted records remain queryable in storage
+- no timed hard-delete job was found
 
-**Why it's a guess (The Evidence Gap):**
-There is no grace-period wiping job. The data remains forever. A previous AI might have just used standard Laravel/Django soft-delete paradigms as boilerplate without asking. 
+**Why this is not confirmed yet:**
+The evidence points to a retention need, but no human-confirmed rule states whether this is for recovery, compliance, or another business reason.
 
-**Needs Confirmation:**
-- Is this data kept indefinitely for legal compliance (e.g., 7-year transaction retention)?
-- Should there be a hard-delete CRON job that fires after 30 days?
+**Needs human review:**
+- why are deleted accounts retained?
+- how long must they remain available?
+- can they ever be archived or hard-deleted?
 
 ---
+
+## Keep Unresolved Entries Here
+
+Do not remove `OPEN` or `EVIDENCED` entries until a human confirms them.

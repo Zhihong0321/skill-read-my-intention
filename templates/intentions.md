@@ -2,55 +2,60 @@
 
 - Repo: [repo name]
 - Last synced: YYYY-MM-DD
-- Mastered by: RMINGI Skill
+- Last reviewed by: [human name or role]
+- RMINGI version: v0.3
 
-> **WARNING TO AI AGENTS:** 
-> Do not add `WEAKLY INFERRED` or `GUESSED` entries directly to this file. All unverified assumptions must go into `.agents/sync-draft.md` for human review. This file only contains `CONFIRMED` business intentions. 
-> 
-> Before modifying, refactoring, or cleaning a Business Flow, you MUST read the corresponding section here to ensure your changes do not violate human intent.
+> WARNING TO AI AGENTS:
+> This file contains human-confirmed business intention only.
+> Do not add guesses, inferred meaning, or draft assumptions here.
+> If intention is not confirmed, keep it in `.agents/sync-draft.md`.
 
 ---
 
-## 1. Authentication & Security Boundaries
+## How To Use This File
+
+- read the relevant business flow before changing code
+- treat every entry here as protected intent
+- if behavior contradicts this file, trigger a mini-sync
+
+---
+
+## 1. Authentication & Identity
 
 ### [Capability: Agent Self-Registration]
 
-- **Status:** ✅ CONFIRMED
-- **Confirmed By:** [Human / Date]
-- **Risk if Misunderstood:** HIGH - Security & Identity Collision
+- Status: `CONFIRMED`
+- Confirmed by: [Human / YYYY-MM-DD]
+- Risk if misunderstood: `HIGH` - identity collision and broken onboarding
+- Last reviewed: YYYY-MM-DD
 
-**The Intention:**
-The Agent Code field exists so that administrators can physically distribute pre-approved codes at seminars. Upon web registration, this code links the newly created account to their physical seminar record. 
+**Why it exists:**
+The agent code exists to link a new web registration to a pre-approved seminar record created by administrators.
 
-**Critical Constraints:**
-- The field is optional because internal agents are registered manually by admins without needing a code.
-- Because it is optional, `agent_code` can NEVER act as a primary key or unique identifier in the database.
-- Future search/index tools must not assume every user has an `agent_code`.
-
----
-
-## 2. Background Jobs & Processing
-
-### [Capability: Daily Inactive Pruning CRON]
-
-- **Status:** ✅ CONFIRMED
-- **Confirmed By:** [Human / Date]
-- **Risk if Misunderstood:** HIGH - Data Loss
-
-**The Intention:**
-The 30-day inactivity pruning job exists solely for GDPR right-to-be-forgotten compliance for trial users. It is not an operational database cleanup task.
-
-**Critical Constraints:**
-- The job MUST ONLY delete users with the `trial` role.
-- Paid users, even if inactive for 5 years, must never be pruned by this job.
-- Any future AI optimizing query performance must not expand the scope of this CRON job to delete full users.
+**Critical constraints:**
+- the field is optional
+- it must never be treated as a universal unique identifier
+- future search and indexing logic must not assume every account has an agent code
 
 ---
 
-## 3. Operations & Support UI
+## 2. Background Jobs & Data Lifecycle
 
-*(Add sections as needed...)*
+### [Capability: Trial User Inactivity Pruning]
+
+- Status: `CONFIRMED`
+- Confirmed by: [Human / YYYY-MM-DD]
+- Risk if misunderstood: `HIGH` - wrongful deletion and compliance risk
+- Last reviewed: YYYY-MM-DD
+
+**Why it exists:**
+This job exists to remove inactive trial users under a specific compliance rule. It is not a general cleanup tool.
+
+**Critical constraints:**
+- it must apply only to the allowed user segment
+- it must never expand into paid or retained accounts without human approval
+- performance cleanup must not reuse this job for a broader deletion policy
 
 ---
 
-## End of Map
+## Add More Flows As Needed
