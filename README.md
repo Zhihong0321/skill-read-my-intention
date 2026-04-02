@@ -15,6 +15,31 @@
 
 ---
 
+<table>
+<tr>
+<td align="center">
+<br/>
+
+### 🟢 &nbsp; Using RMINGI is one sentence.
+
+```
+"Run read-my-intention on this codebase."
+```
+
+That's it. Drop the `SKILL.md` into your project.
+Tell your AI agent to run it. The AI scans your codebase,
+finds where intention was guessed, and asks you to confirm
+what's real — before the next AI changes your system.
+
+**No setup. No config. No dependencies. Just one command.**
+
+<br/>
+</td>
+</tr>
+</table>
+
+---
+
 > *"Blurry intention is like cancer in a codebase. It doesn't cause any visible trouble at first. But as AI models build on top of unstated assumptions, it silently metastasizes — until it becomes the deadliest problem in your system."*
 
 ---
