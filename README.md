@@ -4,7 +4,7 @@
 [![Methodology](https://img.shields.io/badge/methodology-risk_reduction-orange.svg)]()
 [![Target](https://img.shields.io/badge/target-AI_First_Codebases-brightgreen.svg)]()
 
-> *The AI built it. It works. But did it build it for the right reason?*
+> *"Blurry intention is like cancer in a codebase. It doesn't cause any visible trouble at first. But as AI models build on top of unstated assumptions, it silently metastasizes until it becomes the deadliest problem in your system."*
 
 **RMINGI** is an operational safety-net process for surfacing and syncing the **WHY** behind AI-built codebases. It is designed to find hidden assumptions that pose a massive risk to long-running, multi-model AI projects.
 
