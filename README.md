@@ -1,33 +1,8 @@
 # RMINGI - Read My Intention, Not Guess It
 
-**AI can write working code. RMINGI helps AI understand why the code exists.**
+> "Blurry intention is like cancer in a codebase. It doesn't cause any visible trouble at first. But as AI models build on top of unstated assumptions, it silently metastasizes until it becomes the deadliest problem in your system."
 
-AI coding is getting very good.
-
-It can build features.
-It can pass tests.
-It can ship code.
-
-But there is still one big gap between AI coders and experienced human coders:
-
-**intention**
-
-Good human coders do not start with code first.
-They try to make the intention clear first.
-
-They ask:
-
-- Why does this feature exist?
-- What business rule does it protect?
-- What must never change?
-- What looks simple, but is actually important?
-
-AI usually does not do this well.
-
-AI looks for clear instructions, patterns, and structure.
-It can build code that works without fully understanding the real reason behind it.
-
-That is where AI codebases start to drift.
+RMINGI is a workflow for surfacing and syncing the WHY behind AI-built codebases. It helps find hidden assumptions before they turn into expensive mistakes.
 
 ## The Missing Piece
 
