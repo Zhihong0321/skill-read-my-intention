@@ -1,176 +1,100 @@
 ---
 name: read-my-intention
-description: Use when an AI-built codebase has grown large and intention drift is suspected — where the AI may have been guessing the WHY behind features rather than reading it. This skill reads the existing codebase, produces a structured Intentions Map organized by UX/UI flows, explicitly flags every guessed intention, and runs a sync dialogue with the human to confirm or correct each guess. The output is .agents/intentions.md — a permanent record of WHY each feature exists, readable by any future AI agent.
+description: RMINGI v0.2. Use to recover and align the business intention behind an AI-built codebase. This skill does not document everything; it acts as a risk-scanner. It finds areas where intentions were guessed, places them in an air-gapped `.agents/sync-draft.md`, groups them by business flow, and syncs with the human. Confirmed choices are permanently stored in `.agents/intentions.md`.
 ---
 
-# Read My Intention (RMI)
+# Read My Intention (RMINGI)
 
-This skill recovers and syncs the WHY behind an AI-built codebase.
+This skill recovers and syncs the **WHY** behind an AI-built codebase.
 
-It does not describe what code does. It captures why features exist — from the human's perspective — in a form any future AI can read before touching that feature.
-
----
-
-## When To Use This Skill
-
-Use when any of these are true:
-
-- the project has been AI-developed for more than a few months
-- multiple AI models have contributed and each may have interpreted intent differently
-- the AI made a decision you didn't expect — and you realized it was guessing
-- you are onboarding a new AI model and want it oriented before it touches production code
-- a refactor or cleanup run is planned and you want to protect features from being misread
-- `.agents/intentions.md` does not exist yet
-
-Do not use this skill for a new project before any code is written — at that stage, write intentions alongside building, not before.
+It does not document what code does. It acts as a targeted mine-sweeper, hunting for hidden assumptions, inferred business rules, and undocumented constraints that pose a risk to future development.
 
 ---
 
-## Two Phases
+## The Workflow: 2 Phases
 
-### Phase 1 — Discovery
+### Phase 1 — Discovery (Mine-Sweeping for Risk)
 
-The AI reads the codebase and builds a draft Intentions Map.
+The AI scans the codebase, prioritizes high-risk domains, and builds a draft of assumptions. Speculation is strictly air-gapped into a draft file so future agents do not read guesses as facts.
 
-**Step 1: Build the UX map**
+**Step 1: The Evidence Ladder**
+Before guessing intent from code, gather context. Read in this order:
+1. `README.md` and any existing documentation files
+2. Any `.agents/` memory files (if they exist)
+3. Prompts or inline code comments
+4. The code itself
 
-Scan the codebase for route definitions, view files, page components, and navigation structure. Build a list of all user-facing areas:
-- pages and views
-- major flows (registration, login, onboarding, checkout, etc.)
-- admin and management areas
-- API surfaces that drive UI behavior
+**Step 2: Map the Core Business Flows**
+Identify the primary capabilities of the system. Do not organize by file paths or UI alone. Look for:
+- Core UI flows (Checkout, Registration, Dashboards)
+- Background processes (CRON jobs, Schedulers, Syncs)
+- Security boundaries (Auth middleware, Role checks)
+- Integrations (Payment hooks, Third-party APIs)
+- Data lifecycle (Archiving, Soft deletes)
 
-Do not organize by file path. Organize by **what the human sees and uses**.
+**Step 3: Hunt for "Expensive Guesses"**
+Do not document obvious mechanics (e.g., "The email field accepts email"). Hunt for structural decisions driven by inferred business rules. 
 
-**Step 2: For each area, read the implementation**
+Classify assumptions using the **Confidence & Risk Model**:
+- **Confidence:** 
+  - `STRONGLY EVIDENCED`: Intent is explicitly stated in comments/docs.
+  - `WEAKLY INFERRED`: Intent was guessed from variable names or structure. Focus your attention here.
+- **Risk if wrong:**
+  - `HIGH`: Data loss, compliance violation, security hole, broken payment.
+  - `MEDIUM`: Broken UX flow, degraded performance.
+  - `LOW`: Cosmetic mismatch. (Ignore these).
 
-For each page/flow/feature, read:
-- the view or component file
-- the data it reads and writes
-- the validation and business rules applied
-- any special conditions (optional fields, hidden states, role restrictions)
-
-**Step 3: Write intention entries**
-
-For each feature element, decide: is the intention CLEAR or GUESSED?
-
-**CLEAR** — use when the intent is directly derivable from the code:
-- a required email field on a login form → clearly authentication
-- a price field that runs through a tax calculation → clearly billable amount
-- a delete button that is only visible to admin role → clearly admin-only action
-
-**GUESSED** — use when you are inferring intent from partial evidence:
-- an optional field with no validation and no downstream usage found
-- a field named ambiguously (e.g., "status", "type", "code")
-- a feature that was built but has no active callers in the current codebase
-- any time the instruction that created this feature was likely short and unexplained
-
-Write every GUESSED entry with full reasoning — not just the guess, but WHY you are guessing and WHAT you need the human to confirm.
-
-**Step 4: Produce the draft**
-
-Write the draft to `.agents/intentions.md` using the format in `templates/intentions.md`.
-
-End the draft with a section listing all GUESSED entries that need human review, in order of risk (higher-risk features first).
+**Step 4: Produce the Sync Draft**
+Write the findings to a temporary artifact: `.agents/sync-draft.md`. 
+Group all `WEAKLY INFERRED` entries into "Review Packets" by flow (e.g., "The Registration Cycle"). 
 
 ---
 
-### Phase 2 — Sync
+### Phase 2 — Sync (Batched Realignment)
 
-The AI presents each GUESSED entry to the human and asks for confirmation or correction.
+The AI presents the Review Packets to the human to correct, refine, or confirm.
 
-**Sync protocol:**
-
-1. Present one GUESSED entry at a time — do not dump all guesses at once
-2. State:
-   - what you see in the code
-   - what you assumed the intention to be
-   - why you are guessing (what information was missing)
-   - what specific confirmation you need
-3. Wait for the human's response
-4. Update the intentions map:
-   - if confirmed: change marker from `⚠️ GUESSED` to `✅ CONFIRMED`, record the confirmation
-   - if corrected: rewrite the intention with the human's actual answer, mark as `✅ CONFIRMED`
-   - if deferred: mark as `⏸ DEFERRED` with the reason
-5. Move to next GUESSED entry
-
-Do not skip entries. Do not batch multiple guesses into one question unless they are directly related.
+**Sync Protocol:**
+1. Do not ask questions one-by-one. Present **Review Packets** (max 3-5 related features at a time) grouped by Business Flow.
+2. For each packet, state:
+   - What the code is doing.
+   - What you assumed the business intention is.
+   - Why you suspect it might be a guess.
+   - The concrete risk if the guess is wrong.
+3. Wait for the human's response to the packet.
+4. If the human confirms or corrects the intent:
+   - Move the entry from `.agents/sync-draft.md` to the canonical `.agents/intentions.md`.
+   - Add the human's exact reasoning.
+5. Move to the next packet.
 
 **When sync is complete:**
-
-All entries are either CONFIRMED, DEFERRED, or explicitly marked as OPEN with a reason. Write the final intentions map. Update the maintenance log.
+Delete `.agents/sync-draft.md` if empty. `.agents/intentions.md` is now the shared, canonical record of WHY.
 
 ---
 
-## Intention Entry Format
+## Intention Entry Schema
 
-### For CLEAR intentions:
+In `.agents/intentions.md`, every entry must follow this schema:
 
 ```md
-### [Feature or element name]
+### [Feature or Capability Name]
 
-**Intent: CLEAR**
-[One or two sentences stating the intention plainly.]
-[Any constraints or rules that follow directly from this intention.]
+- **Status:** ✅ CONFIRMED
+- **Confirmed By:** [Human/Model Date]
+- **Risk if Misunderstood:** [High/Med] - [Brief risk statement]
+
+**The Intention:**
+[Plain language statement of WHY this feature exists and what business rule it serves.]
+
+**Critical Constraints:**
+- [What future AIs MUST NOT change]
+- [What rules must be preserved]
 ```
 
-### For GUESSED intentions:
+## Maintenance & Change Workflows
 
-```md
-### [Feature or element name]
+After the initial RMINGI sync, the map becomes an operational tool.
 
-**⚠️ Intent: GUESSED**
-
-**What the code shows:**
-[Factual description of what was found in the code — no interpretation yet.]
-
-**Assumed intention:**
-[The AI's best guess at WHY this exists.]
-
-**Why this is a guess:**
-[What specific information is missing. What instruction created this feature. What about the code is ambiguous.]
-
-**Needs confirmation:**
-- [Specific question 1]
-- [Specific question 2]
-```
-
-### After sync — confirmed:
-
-```md
-### [Feature or element name]
-
-**✅ Intent: CONFIRMED** — [date confirmed]
-[The human-confirmed intention, written plainly.]
-[constraints and rules that follow from the confirmed intention]
-```
-
----
-
-## Rules
-
-- organize by UX/UI, never by file or module name — the human must be able to navigate this document without reading code
-- never write a CLEAR entry for something you actually inferred — CLEAR means the code proves it, not that the guess seems reasonable
-- never present more than one GUESSED entry per sync exchange unless they are tightly related
-- do not change or refactor any code during this skill — read only, write only to intentions.md
-- if a confirmed intention reveals a bug or mismatch in the current code, note it in `.agents/ambiguities.md` — do not fix it in this run
-- intentions.md is always organized from the human's perspective — features, flows, pages — never by technical layer
-
----
-
-## Maintenance
-
-After the initial sync:
-
-- when a new feature is added: create its intention entry before or immediately after building
-- when switching AI models: the new model reads intentions.md before any work begins
-- when a feature is significantly changed: review and update its intention entry
-- when running `residual-cleaner` or `architecture-optimizer`: check intentions.md first — do not clean or optimize what you do not understand the purpose of
-
----
-
-## Output Location
-
-`.agents/intentions.md` in the user's repo root.
-
-Template: `templates/intentions.md`
+- **Before Refilling/Architecture Changes:** An AI must read the relevant sections of `intentions.md` to ensure structural changes don't violate business intent.
+- **When Not to Trust the Map:** If a `CONFIRMED` intention is more than 12 months old, or directly contradicts current system behavior, an AI should flag it and trigger a mini-sync to ask the human if the intention has evolved.
+- **New Features:** A new feature's intention should be added to `intentions.md` *before* code is written, ensuring intent leads execution.
